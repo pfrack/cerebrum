@@ -82,17 +82,16 @@ pub(crate) fn try_optimize_request(body: &[u8], is_anthropic: bool) -> Option<Re
     // Single-message probe patterns. Skip streaming requests — real probes never stream.
     if messages.len() == 1 && val.get("stream") != Some(&serde_json::Value::Bool(true)) {
         let content = messages[0].get("content")?;
-        let text = if let Some(s) = content.as_str() {
-            s.trim().to_lowercase()
-        } else if let Some(arr) = content.as_array() {
-            if arr.len() == 1 {
-                arr[0].get("text")?.as_str()?.trim().to_lowercase()
-            } else {
-                return None;
-            }
-        } else {
-            return None;
-        };
+	let text = if let Some(s) = content.as_str() {
+		s.trim().to_lowercase()
+	} else {
+		let arr = content.as_array()?;
+		if arr.len() == 1 {
+			arr[0].get("text")?.as_str()?.trim().to_lowercase()
+		} else {
+			return None;
+		}
+	};
 
         if matches!(text.as_str(), "hello" | "hi" | "test" | "hey") {
             debug!(
