@@ -4,7 +4,7 @@ project: frugalis
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-07-01
+updated: 2026-07-31
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -34,23 +34,23 @@ Autonomous agents currently forward prompts to expensive models without intent-a
 | F-02 | data-persistence-async-logging | (foundation) Async inference logging pipeline connected to Supabase PostgreSQL | — | FR-005, NFR (non-blocking logs) | done |
 | F-03 | dashboard-template-scaffold | (foundation) Askama HTML templating and server-side rendering wired into Axum | — | FR-006, Dashboard | done |
 | F-04 | critical-logging | (foundation) Add structured logging to all critical paths and make logging level configurable via RUST_LOG | F-01, F-02, F-03 | FR-005, Observability | done |
-| S-01a | classify-endpoint | classify prompts into intent categories using regex/keyword rules and cheap-model fallback | F-01, F-02 | FR-002 | implemented |
-| S-01b | reqwest-upstream-routing | route classified requests to appropriate upstream models via reqwest | S-01a | FR-003 | impl_reviewed |
-| S-01c | provider-agnostic-config | generalize routing configuration to support multiple providers with different auth schemes | S-01b | FR-003 | implemented |
-| S-01d | sse-streaming-proxy | stream upstream responses back to clients via SSE | S-01c | FR-004 | impl_reviewed |
-| S-01e | proxy-intent-routing | end-to-end proxy: receive chat completions, coordinate classification, routing, and streaming | S-01a, S-01b, S-01c, S-01d | US-01, FR-001 | implemented |
+| S-01a | classify-endpoint | classify prompts into intent categories using regex/keyword rules and cheap-model fallback | F-01, F-02 | FR-002 | done |
+| S-01b | reqwest-upstream-routing | route classified requests to appropriate upstream models via reqwest | S-01a | FR-003 | done |
+| S-01c | provider-agnostic-config | generalize routing configuration to support multiple providers with different auth schemes | S-01b | FR-003 | done |
+| S-01d | sse-streaming-proxy | stream upstream responses back to clients via SSE | S-01c | FR-004 | done |
+| S-01e | proxy-intent-routing | end-to-end proxy: receive chat completions, coordinate classification, routing, and streaming | S-01a, S-01b, S-01c, S-01d | US-01, FR-001 | done |
 | S-02 | inference-log-inspection | view recent inference records in the dashboard with prompt snippet, assigned category, upstream model, and duration | F-02, F-03, S-01e | FR-006 | done |
-| S-03 | per-intent-latency-summary | view a latency summary grouped by intent category in the dashboard | F-03, S-02 | Secondary Success Criterion | implemented |
-| S-04 | cost-savings-metric | view an estimated cost-savings indicator based on logged inferences | S-02 | FR-007 (nice-to-have) | implemented |
-| S-05 | dashboard-mvp-rewrite | comprehensive dashboard rewrite: dedicated module, navigation, CSS styling, and integrated UI | F-03, S-02, S-03, S-04 | FR-006, FR-007, Secondary Success Criterion | implemented |
+| S-03 | per-intent-latency-summary | view a latency summary grouped by intent category in the dashboard | F-03, S-02 | Secondary Success Criterion | done |
+| S-04 | cost-savings-metric | view an estimated cost-savings indicator based on logged inferences | S-02 | FR-007 (nice-to-have) | done |
+| S-05 | dashboard-mvp-rewrite | comprehensive dashboard rewrite: dedicated module, navigation, CSS styling, and integrated UI | F-03, S-02, S-03, S-04 | FR-006, FR-007, Secondary Success Criterion | done |
 | S-06 | dashboard-logs-page | dedicated logs page showing detailed inference logs and trace information | F-04, F-02, F-03, S-01e | FR-006, Observability | proposed |
-| S-07 | intent-classifier-trait | extract `IntentClassify` trait; rename `IntentClassifier` → `RegexClassifier` with own config; add fallback chain config (primary → fallback classifier when confidence low); enable pluggable backends | S-01a, S-01c | FR-002 | implemented |
-| S-07a | extract-generic-classifier-config | move generic config out of `RegexClassifier` to `main()`: routing loading (`ROUTING_CONFIG_PATH`, `hardcoded_routing()`), `BASELINE_MODEL` env, `ModelCosts` populating, `DEFAULT_MODEL*` env vars, `NVIDIA_ENDPOINT`, `SHORT_PROMPT_LEN`; `RegexClassifier` receives only patterns/weights/thresholds | S-07, S-01a | FR-002 | done |
+| S-07 | intent-classifier-trait | extract `IntentClassify` trait; rename `IntentClassifier` → `RegexClassifier` with own config; add fallback chain config (primary → fallback classifier when confidence low); enable pluggable backends | S-01a, S-01c | FR-002 | done |
+| S-07a | extract-generic-classifier-config | move generic config out of `RegexClassifier` to `main()`: routing loading, `BASELINE_MODEL`, `ModelCosts`, `DEFAULT_MODEL*`, `SHORT_PROMPT_LEN`; `RegexClassifier` receives only patterns/weights/thresholds | S-07, S-01a | FR-002 | done |
 | S-07b | shared-category-config | extract shared `CategoryConfig` (names, descriptions, thresholds, priorities) consumed by both `RegexClassifier` and `LLMClassifier` from a single source of truth | S-07, S-01a | FR-002 | done |
 | S-08 | provider-url-derivation | ~~refactor routing config so endpoint URLs omit `v1/chat/*`; path suffix derived from `provider_type`~~ — descoped (research-only; not worth config complexity at current scale) | — | FR-003 | descoped |
 | S-09 | llm-classifier | implement `LLMClassifier` backend for `IntentClassify` trait: sends prompt to a small/cheap model, parses classification from response; config carries model, endpoint, `UPSTREAM_API_KEY`, classification prompt template | S-07, S-07b | FR-002 | done |
 | S-09a | classifier-config-boundary | extract generic classifier boundary config: per-backend enable/disable flags, clear separation of generic settings (CategoryConfig, chain construction) from backend-specific settings (RegexClassifier: patterns/weights; LLMClassifier: model/endpoint/API key/prompt) | S-07b, S-09 | FR-002 | done |
-| S-10 | post-review-cleanup | (tech debt + hardening + reliability) Consolidates review-cleanup, review-hardening, and prod-hardening-reliability into a single 12-phase plan: SSE log timing, handler decomposition, cleanup, test safety, embedded migrations, LLM key refresh, auth hardening, streaming/JSON fixes, dead code, graceful shutdown, configurability, and observability | S-09a | — | planned |
+| S-10 | post-review-cleanup | (tech debt + hardening + reliability) Consolidates review-cleanup, review-hardening, and prod-hardening-reliability into a single 12-phase plan | S-09a | — | planned |
 | S-11 | opentelemetry-integration | export application traces, metrics, and logs via OTLP to an observability backend (Grafana Cloud); leverages existing `tracing` crate with zero business-logic changes for traces | S-10 | FR-005 | proposed |
 | S-12 | in-memory-db-fallback | persistence always available: 3-tier backend config (`memory` / `sqlite` / `postgres`) via `DB_BACKEND` env; enables zero-dep dev startup and real persistence in tests | S-13 | FR-005, NFR (testing) | proposed |
 | S-13 | move-all-config-to-file | Config: eliminate all hardcoded values — 25 hardcoded Rust values + 19 env var reads moved to config.toml; env vars reduced to API_KEYS + auth creds + DATABASE_URL only; categories and regex patterns fully configurable | S-09a, **S-14** | FR-002, FR-003 | done |
@@ -73,6 +73,18 @@ Autonomous agents currently forward prompts to expensive models without intent-a
 | S-30 | real-tokenizer | real tokenization for `/v1/messages/count_tokens` (replaces chars/4 heuristic) | — | FR-003 | proposed |
 | S-31 | multi-tenant-keys-budgets | per-user API keys + RBAC + budgets/quotas + audit logs | S-18 | Access Control | enterprise |
 | T-01 | code-structure-reorg | (tech debt) flat src/ reorganized into domain directories; main.rs shrinks from 8,460 to ~250 lines | — | NFR (maintainability) | done |
+| T-01a | code-structure-reorg-ext | (tech debt) extend reorg with routing_examples updates, test co-location, dashboard/routing/app subdirectories | T-01 | NFR (maintainability) | done |
+| T-02 | protocol-file-naming | (tech debt) rename protocol/ files to communicate translation purpose; fix response/responses homograph | T-01 | NFR (maintainability) | preparing |
+| T-03 | Auth-CI-floor-cookbook | CI floor + auth guard — wire fmt-check, slow_tests, grep-based constant-time-compare guard into ci.yml and deploy.yml | T-09 | NFR (CI/CD) | implementing |
+| T-04 | replace-sqlx | Replace sqlx with diesel for compile-time safety and reduced backend duplication | — | NFR (maintainability) | done |
+| T-05 | testing-proxy-translation-contracts | Proxy translation contract tests — prove translated body, headers, SSE events match reference output for each direction | S-15, S-16 | NFR (testing) | done |
+| T-06 | classifier-chain-routing-integrity | Classifier chain routing integrity tests — prove chain escalation and routing correctness | S-07, S-09 | NFR (testing) | done |
+| T-07 | persistence-snippet-guardrails | Persistence snippet guardrails — make async logging failure observable, PII guardrails on snippet extraction across all backends | T-04 | NFR (testing) | done |
+| T-08 | fewshot-classifier | Few-shot intent classifier backend for the ClassifierChain architecture | S-07 | FR-002 | done |
+| T-09 | cicd-dev-tooling | CI/CD + dev tooling — Makefile/justfile, Dockerfile, docker-compose stack, test plan refresh | — | NFR (CI/CD) | done |
+| T-10 | testing-critical-path-regression-guards | Critical-path regression guards — chain escalation + completion_handler invariant tests | S-07, S-01e | NFR (testing) | done |
+| T-11 | anthropic-passthrough | Anthropic pass-through endpoint (`/v1/messages`) — foundation for S-16 multi-protocol support | S-01e | FR-003 | done |
+| R-01 | competitive-landscape-2026 | Research: competitive landscape analysis — positioning vs LiteLLM/Portkey/OpenRouter/Helicone/RouteLLM | — | Strategy | preparing |
 
 ## Streams
 
@@ -169,7 +181,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - How does regex/keyword classification map to intent categories? (Intent categories: COMPLEX_REASONING, FILE_READING, SYNTAX_FIX, CASUAL per shape-notes.) Owner: you. Block: yes.
   - Which cheap model to use for fallback classification? Owner: you. Block: yes.
 - **Risk:** Classification rules (regex + fallback) are the MVP cheapest path; if fallback cost becomes too high in production, that's a post-MVP tuning point. Implementation is self-contained and testable.
-- **Status:** implemented
+- **Status:** done
 
 ### S-01b: Upstream routing with reqwest
 
@@ -183,7 +195,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Which upstream models are available on chosen provider (OpenRouter?) and what are their cost/latency profiles? Owner: you. Block: yes.
   - Does reqwest streaming support align with SSE requirements? Owner: implementation research. Block: no.
 - **Risk:** Upstream connectivity is a critical path; failures here should have clear error responses. Model choice impacts both cost and routing logic.
-- **Status:** impl_reviewed
+- **Status:** done
 
 ### S-01c: Provider-agnostic configuration
 
@@ -197,7 +209,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Should the configuration be a single-level routing.toml or two-level (providers + routing)? Owner: implementation. Block: no.
   - How to handle provider-specific body transformations (e.g., Anthropic vs OpenAI format)? Owner: implementation. Block: no.
 - **Risk:** Configuration complexity must remain manageable for MVP. Provider abstraction adds indirection but enables flexibility. Non-breaking changes are possible.
-- **Status:** implemented
+- **Status:** done
 
 ### S-01d: SSE streaming proxy
 
@@ -211,7 +223,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Does SSE streaming require application-level keepalive pings, or is HTTP/1.1 transfer-encoding: chunked sufficient? Owner: implementation research. Block: no.
   - How to handle upstream errors during streaming? Owner: implementation. Block: no.
 - **Risk:** Streaming edge cases are real but manageable (keepalive pings are a one-liner if needed). SSE is well-supported in Axum and reqwest.
-- **Status:** impl_reviewed
+- **Status:** done
 
 ### S-01e: End-to-end proxy integration
 
@@ -223,7 +235,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** — (all unknowns resolved in previous phases)
 - **Risk:** The core product slice; all downstream work depends on this shipping. Integration complexity is bounded since components were built to compose. This is the final validation that the pieces work together.
-- **Status:** implemented
+- **Status:** done
 
 ### S-02: Inference log inspection
 
@@ -251,7 +263,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Should the summary be computed in the database (SQL GROUP BY + aggregation) or in Rust (query all rows, compute in-memory)? Owner: implementation. Block: no (SQL is simpler).
   - Time window for the summary? (last hour? last 24h? configurable?) Owner: you. Block: no (default: last 24h is reasonable).
 - **Risk:** Third-priority slice after core proxy and basic log view. Aggregation adds minimal complexity. If compute time becomes noticeable, move aggregation to a background job; but that's post-MVP tuning.
-- **Status:** implemented
+- **Status:** done
 
 ### S-04: Cost-savings metric
 
@@ -263,7 +275,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** — (resolved)
 - **Risk:** Nice-to-have; not critical for MVP. Baseline model configurable via `BASELINE_MODEL` env var and classification cost model tracked in the inference log, enabling a directional savings estimate without needing per-model cost tables.
-- **Status:** implemented
+- **Status:** done
 
 ### S-05: Dashboard MVP rewrite
 
@@ -275,7 +287,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Low risk polish/consolidation effort that significantly improves operator UX without changing backend semantics. The rewrite is architecturally clean: separates concerns into a dedicated module, uses a macro for template structs, and provides consistent error handling.
-- **Status:** implemented
+- **Status:** done
 
 ### S-06: Dashboard logs page
 
@@ -412,7 +424,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Medium — touches every module. Classification logic refactoring (`build_all_patterns`, `classify_internal`) is the riskiest change but existing patterns become the shipped default config, preserving behavior. Extensive test coverage already exists.
-- **Status:** done (research complete)
+- **Status:** done (archived 2026-06-11)
 
 ### S-14: Config Format Upgrade — Multi-Format + External Patterns
 
@@ -424,7 +436,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Medium — serde refactor must preserve exact semantics of manual TOML parsing; YAML edge cases need testing; pattern file resolution adds I/O at startup. But approach is incremental (Phase 1 serde refactor keeps existing loader signatures) and all changes are covered by tests.
-- **Status:** done (research complete: `context/changes/config-format-upgrade/research-config-format.md`)
+- **Status:** done (archived 2026-06-13)
 
 ### S-15: Protocol translation — OpenAI client → Anthropic upstream
 
@@ -448,7 +460,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Medium-High — the stateful SSE emitter (tracking open block type, block indices, tool call state) is the most complex piece. Must handle thinking blocks, tool_use streaming, and block transitions correctly. Research complete: `context/changes/translate-anthropic-to-openai/research.md`.
-- **Status:** researched
+- **Status:** done
 
 ### S-17: Provider Fallback / Cascade
 
@@ -490,7 +502,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** — (resolved during planning)
 - **Risk:** Medium-High — header plumbing is a signature change across 3 call sites; Phase 4 streaming-log finalization restructure touches ~20 `log_classification` sites. Prompt caching verified GA (no beta header needed). Plan: `context/changes/claude-code-compat/plan.md`.
-- **Status:** implemented (reviewed, manual tests added, archived 2026-06-27)
+- **Status:** done (archived 2026-06-27)
 
 ### S-19: Response caching — semantic + exact-match
 
@@ -500,9 +512,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** S-01e
 - **Parallel with:** S-18, S-20, S-21
 - **Blockers:** —
-- **Unknowns:** Cache backend choice (in-memory vs Redis vs SQLite) — owner: planning. Block: yes.
+- **Unknowns:** —
 - **Risk:** Medium — adds a cache-lookup layer in both handlers; streaming cache semantics (replay vs re-stream) need care. Semantic cache needs an embedding model dependency.
-- **Status:** proposed
+- **Status:** done (archived 2026-06-28)
 
 ### S-20: Provider retries + backoff + cooldowns
 
@@ -659,60 +671,186 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** Should not overlap with in-flight changes touching `main.rs` handlers
 - **Unknowns:** —
 - **Risk:** Low-medium — pure structural refactoring with no behavior changes. 4-phase plan ordered by coupling risk ensures compilation at each step. ~105 existing tests serve as regression guard.
-- **Status:** planned
+- **Status:** done (archived 2026-06-28)
+
+### T-01a: Code structure reorganization extension
+
+- **Outcome:** (tech debt) Extend the completed code-structure-reorg with routing_examples updates, test co-location improvements (cache.rs deduplication), and user-directed domain subdirectory extraction (dashboard/, routing/, app/ folders).
+- **Change ID:** `code-structure-reorg-ext`
+- **PRD refs:** NFR (maintainability)
+- **Prerequisites:** T-01 (base reorg complete)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low — follow-on refactoring with no behavior changes. Tests serve as regression guard.
+- **Status:** done (archived 2026-07-01)
+
+### T-02: Protocol file naming — rename misleading protocol/ files
+
+- **Outcome:** (tech debt) `src/protocol/` files renamed to communicate their translation purpose. The `response`/`responses` homograph is eliminated. `mod.rs` gains `//!` documentation explaining the taxonomy. Files indicate direction (e.g., `request_translation.rs`, `stream_translation.rs`) or domain (`responses_api.rs`).
+- **Change ID:** `protocol-file-naming`
+- **PRD refs:** NFR (maintainability)
+- **Prerequisites:** T-01 (base reorg complete)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** Exact naming scheme (verb-suffix vs domain-noun) — resolved during framing.
+- **Risk:** Low — pure file rename with module path updates. All `crate::protocol::*` call sites in `src/proxy/` must be updated. No behavior changes.
+- **Status:** preparing (frame complete, awaiting plan)
+
+### T-03: CI floor + auth guard
+
+- **Outcome:** CI workflows (`ci.yml`, `deploy.yml`) gain 3 gates: `cargo fmt --check`, `cargo test slow_tests`, and a grep-based constant-time-compare guard. `constant_time_eq_str` becomes `pub(crate)` with a direct unit test. The auth invariant is protected against future `==` regressions.
+- **Change ID:** `Auth-CI-floor-cookbook`
+- **PRD refs:** NFR (CI/CD)
+- **Prerequisites:** T-09 (cicd-dev-tooling — justfile/Makefile already defines the gates)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low — pure YAML/Makefile wiring + 1 visibility change + short grep script. Coverage threshold and cookbook backfill are separate future changes.
+- **Status:** implementing (plan complete)
+
+### T-04: Replace sqlx with diesel
+
+- **Outcome:** (tech debt) Migrated from sqlx 0.8 to diesel for compile-time query safety and reduced code duplication between Postgres and SQLite backends.
+- **Change ID:** `replace-sqlx`
+- **PRD refs:** NFR (maintainability)
+- **Prerequisites:** —
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Medium — touches all persistence code. Mitigated by comprehensive test coverage.
+- **Status:** done (archived 2026-07-01)
+
+### T-05: Proxy translation contract tests
+
+- **Outcome:** (testing) Contract tests proving translated body, headers, and SSE events match known-good reference output for each translation direction (OpenAI→Anthropic, Anthropic→OpenAI, Responses→Chat). Covers Risk #1 (protocol translation corruption) and Risk #4 (streaming emitter edge cases).
+- **Change ID:** `testing-proxy-translation-contracts`
+- **PRD refs:** NFR (testing)
+- **Prerequisites:** S-15, S-16 (translation directions exist)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low — additive test code with no production changes.
+- **Status:** done (archived 2026-07-01)
+
+### T-06: Classifier chain routing integrity
+
+- **Outcome:** (testing) Tests proving classifier chain escalation from regex to fewshot to LLM and correct routing based on the final classification result.
+- **Change ID:** `classifier-chain-routing-integrity`
+- **PRD refs:** NFR (testing)
+- **Prerequisites:** S-07, S-09 (chain and LLM backend exist)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low — additive test code.
+- **Status:** done (archived 2026-07-01)
+
+### T-07: Persistence snippet guardrails
+
+- **Outcome:** (testing) Async logging failure is observable (not silent); snippet extraction holds across all 3 backends (memory/SQLite/Postgres) with PII guardrails. Covers Risk #5 (silent log_inference failure) and Risk #6 (PII leakage through snippet extraction).
+- **Change ID:** `persistence-snippet-guardrails`
+- **PRD refs:** NFR (testing)
+- **Prerequisites:** T-04 (replace-sqlx — new persistence layer)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low — additive test code + minor observability improvements to production error paths.
+- **Status:** done (archived 2026-07-01)
+
+### T-08: Few-shot intent classifier
+
+- **Outcome:** A `FewShotClassifier` backend implementing `IntentClassify`, using few-shot learning inspired by ciresnave/intent-classifier, fitted to the existing trait and ClassifierChain architecture. Provides a middle tier between regex (fast/rigid) and LLM (slow/flexible).
+- **Change ID:** `fewshot-classifier`
+- **PRD refs:** FR-002 (intent classification)
+- **Prerequisites:** S-07 (IntentClassify trait)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Medium — new classification backend with its own model/embedding dependency. Validated by the existing chain architecture.
+- **Status:** done (archived 2026-06-13)
+
+### T-09: CI/CD dev tooling
+
+- **Outcome:** (infrastructure) Makefile/justfile with `ci`/`gates` composite targets, Dockerfile, docker-compose stack (postgres + OTel collector) for manual and integration testing, test plan refresh referencing the new tooling.
+- **Change ID:** `cicd-dev-tooling`
+- **PRD refs:** NFR (CI/CD)
+- **Prerequisites:** —
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low — additive infrastructure files with no production code changes.
+- **Status:** done (archived 2026-06-26)
+
+### T-10: Critical-path regression guards
+
+- **Outcome:** (testing) Integration tests for classifier chain escalation (regex→fewshot→LLM handoff with mock backends) and regression assertions on completion_handler (invariant assertions protecting F1–F4 review fixes: snippet extraction, streaming error path, keepalive, JSON contract).
+- **Change ID:** `testing-critical-path-regression-guards`
+- **PRD refs:** NFR (testing)
+- **Prerequisites:** S-07 (classifier trait), S-01e (completion_handler exists)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low — additive test code with comprehensive mock infrastructure.
+- **Status:** done (archived 2026-06-27)
+
+### T-11: Anthropic passthrough endpoint
+
+- **Outcome:** A `POST /v1/messages` endpoint accepting Anthropic Messages API requests, classifying intent, and forwarding verbatim to Anthropic-compatible upstreams (pass-through, no protocol translation). Foundation for the full S-16 bidirectional translation.
+- **Change ID:** `anthropic-passthrough`
+- **PRD refs:** FR-003 (routing)
+- **Prerequisites:** S-01e (end-to-end proxy)
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low-Medium — new endpoint building on established patterns from `/v1/chat/completions`.
+- **Status:** done (archived 2026-06-23)
+
+### R-01: Competitive landscape 2026 (research)
+
+- **Outcome:** (research) Strategic analysis of where Frugalis overlaps with existing LLM gateways (LiteLLM, Portkey, OpenRouter, Helicone, RouteLLM, Bifrost, Requesty) and what makes it unique. Identifies gap tiers (Tier-1 deal-breakers, Tier-2 credibility, Tier-3 leverage, Enterprise). Informs the competitive gap slice prioritization (S-18 through S-31).
+- **Change ID:** `competitive-landscape-2026`
+- **PRD refs:** Strategy
+- **Prerequisites:** —
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** None — pure research with no code changes.
+- **Status:** preparing (research document complete, pending strategic decisions)
 
 ## Backlog Handoff
 
+Only items not yet done. Completed slices are in the Done section below.
+
 | Roadmap ID | Change ID | Suggested issue title | Ready for `/10x-plan` | Notes |
 |---|---|---|---|---|
-| F-01 | auth-scaffold-access-keys | Auth: Access key validation middleware + operator dashboard gate | yes | Simplest foundation; no blockers. Plan first to unblock proxy endpoint exposure. |
-| F-02 | data-persistence-async-logging | Data: Supabase PostgreSQL + async inference logging | yes | Quick setup (Supabase free tier); enables proxy observability. Plan in parallel with F-01 if team size allows. |
-| F-03 | dashboard-template-scaffold | Dashboard: Askama template scaffold + /dashboard route | yes | Pure scaffolding; no external dependencies. Plan in parallel with F-01 / F-02. |
-| F-04 | critical-logging | Foundation: Add structured logging to all critical paths | yes | Improves observability and supports logs UI. |
-| S-01a | classify-endpoint | Proxy: Intent classification endpoint (regex + cheap-model fallback) | no | Unblock F-01 and F-02 first. Status check: already implemented. 2 blocking unknowns originally (intent classification rules, cheap model choice) - these were resolved during implementation. |
-| S-01b | reqwest-upstream-routing | Proxy: Upstream model routing with reqwest | no | Unblock S-01a first. Status: impl_reviewed (implemented but underwent review). 1 blocking unknown originally (upstream model choices) - resolved. |
-| S-01c | provider-agnostic-config | Proxy: Provider-agnostic routing configuration for multiple providers | no | Unblock S-01b first. Status: implemented. |
-| S-01d | sse-streaming-proxy | Proxy: SSE streaming response handler | no | Unblock S-01c first. Status: impl_reviewed. |
-| S-01e | proxy-intent-routing | Proxy: End-to-end intent-aware routing integration | no | Unblock all prior S-01* slices. Status: implemented (north star achieved). |
-| S-02 | inference-log-inspection | Dashboard: Recent inferences table (category, model, duration) | no | Already implemented. |
-| S-03 | per-intent-latency-summary | Dashboard: Per-intent latency summary | no | Already implemented. |
-| S-04 | cost-savings-metric | Dashboard: Estimated cost-savings metric (nice-to-have) | no | Already implemented; baseline model configurable via `BASELINE_MODEL` env var and classification costs accounted. |
-| S-05 | dashboard-mvp-rewrite | Dashboard: Comprehensive UI rewrite with navigation, CSS, and consolidated observability views | no | Already implemented; transforms POC scaffold into production-ready dashboard with sidebar, theming, and integrated homepage. |
-| S-06 | dashboard-logs-page | Dashboard: Dedicated page for detailed logs and traceability | no | Proposed; depends on critical logging foundation. |
-| S-07 | intent-classifier-trait | Classifier: Extract IntentClassify trait + ClassifierConfig for pluggable backends | no | Implemented; pure refactoring — trait boundary must accommodate future backends. |
-| S-07a | extract-generic-classifier-config | Classifier: Move generic config (routing loading, baseline model, model costs, default models, SHORT_PROMPT_LEN) out of RegexClassifier to main() | no | Proposed; derived prerequisite of S-07. Research: `context/changes/extract-generic-classifier-config/research.md`. |
-| S-07b | shared-category-config | Classifier: Extract shared CategoryConfig with names, descriptions, thresholds, and priorities for both regex and LLM classifiers | no | Proposed; derived prerequisite of S-07. Research: `context/changes/shared-category-config/research.md`. |
-| S-08 | provider-url-derivation | Config: ~~Derive URL path suffix from provider_type; endpoints omit v1/chat/*~~ — descoped (research-only) | no | Descoped after research. |
-| S-09 | llm-classifier | Classifier: LLM-based backend implementing IntentClassify for fallback classification | no | Proposed; depends on S-07 trait + S-07b shared config. Research: `context/changes/llm-classifier/research.md`. |
-| S-09a | classifier-config-boundary | Classifier: Formalize generic/specific config boundary with per-backend enable/disable flags; placed after S-09 to validate against two real backends | no | Proposed; depends on S-07b + S-09. Research: `context/changes/classifier-config-boundary/research.md`. |
-| S-10 | post-review-cleanup | (tech debt + hardening + reliability) 12-phase consolidated plan: SSE log fix, handler decomposition, cleanup, test safety, migrations, LLM key refresh, auth hardening, streaming/JSON fixes, dead code, graceful shutdown, configurability, observability | S-09a | — | planned |
-| S-11 | opentelemetry-integration | Observability: OTLP export of traces, metrics, and logs to Grafana Cloud (feature-gated) | S-10 | FR-005 | proposed |
-| S-12 | in-memory-db-fallback | Persistence: 3-tier backend config (memory/sqlite/postgres); `[persistence]` section in unified TOML | S-13 | FR-005, NFR | proposed |
-| S-13 | move-all-config-to-file | Config: eliminate all hardcoded values — 25 hardcoded Rust values + 19 env var reads moved to config.toml; env vars reduced to API_KEYS + auth creds + DATABASE_URL only; categories and regex patterns fully configurable | yes | Research complete: `context/changes/move-all-config-to-file/research.md`. Prerequisites: S-09a, S-12 already implemented. |
-| S-14 | config-format-upgrade | Config: upgrade format to support YAML + external pattern files; add `--validate` and `--migrate-config` CLI tools | yes | Research complete: `context/changes/config-format-upgrade/research-config-format.md`. Prerequisite: S-13. |
-| S-15 | translate-openai-to-anthropic | Protocol: Translate OpenAI Chat requests → Anthropic Messages for upstream routing to Claude/DeepSeek/Kimi/Z.ai | yes | Research complete: `context/changes/translate-openai-to-anthropic/research.md`. Prerequisite: S-01e (done). |
-| S-16 | translate-anthropic-to-openai | Protocol: New `/v1/messages` endpoint translating Anthropic → OpenAI for upstream routing to NIM/OpenRouter/Groq | yes | Research complete: `context/changes/translate-anthropic-to-openai/research.md`. Prerequisite: S-15. |
-| S-18 | claude-code-compat | Compat: forward anthropic-beta/cache_control headers + translate prompt-caching + Anthropic /v1/models shape (Claude Code drop-in) | no | Plan complete: `context/changes/claude-code-compat/plan.md`. Prerequisites: S-01e, S-15 (done). Tier-1 gap #3/#4. |
-| S-19 | add-response-cache | Cache: semantic + exact-match response caching | yes | From `competitive-landscape-gaps` research (Tier-1 #1). Prerequisite: S-01e. Universal table-stake; Frugalis has zero caching today. |
-| S-20 | provider-retry-backoff | Reliability: same-provider retries + exponential backoff + cooldowns on top of S-17 | yes | From `competitive-landscape-gaps` research (Tier-1 #2). Prerequisite: S-17 (done — failover only). |
-| S-21 | codex-responses-api | Protocol: `/v1/responses` shim so modern Codex CLI (Responses-API-only) can use Frugalis | yes | From `competitive-landscape-gaps` research (Tier-1 #5). Prerequisites: S-01e, S-15. Without it Codex CLI cannot use Frugalis at all. |
-| S-22 | agent-trace-spans | Observability: OpenInference span semantics so OTel feeds Phoenix/Langfuse multi-step traces | yes | From research (Tier-2 #8). Prerequisite: S-11. Decides build-vs-feed for observability app-layers. |
-| S-23 | slice-cost-analytics | Observability: per-user/session/feature cost breakdowns (replaces single savings-vs-baseline #) | yes | From research (Tier-2 #9). Prerequisites: S-18, S-02. |
-| S-24 | guardrails | Security: PII, prompt-injection, JSON-schema checks + deny semantics | yes | From research (Tier-2 #10). Prerequisite: S-01e. Reuses prompt-inspection surface. |
-| S-25 | learned-prompt-router | Classifier (ENTERPRISE): embedding/BERT/calibrated router + cost/quality dial + benchmarks | no | From research (Tier-2 #6/#7). Enterprise-tier — primitive regex/fewshot stays core default. Prerequisite: S-09. |
-| S-26 | alerting | Observability: cost/latency/error threshold + anomaly alerts | yes | From research (Tier-3 #12). Prerequisites: S-02, S-11. |
-| S-27 | evals-datasets | Quality: LLM-as-judge evals + datasets/experiments for routing regression testing | yes | From research (Tier-3 #13). Prerequisite: S-02. |
-| S-28 | prompt-management | Config: versioned, centrally-stored prompts deployable without code changes | yes | From research (Tier-3 #14). Prerequisite: S-01e. |
-| S-29 | circuit-breaker-health | Reliability: proactive upstream health checks + circuit breaker | yes | From research (Tier-3 #16). Prerequisite: S-20. |
-| S-30 | real-tokenizer | Compat: real tokenizer for count_tokens (replaces chars/4 heuristic) | yes | From research (Tier-3 #17). No prerequisites. |
-| S-31 | multi-tenant-keys-budgets | Enterprise: per-user API keys + RBAC + budgets/quotas + audit logs | no | From research (Tier-3 #11). Enterprise-tier — conflicts with flat single-operator MVP Non-Goal. Prerequisite: S-18. |
-| T-01 | code-structure-reorg | Tech debt: reorganize flat src/ into domain directories (proxy/, classification/, protocol/, config/, persistence/) | yes | Plan complete: `context/changes/code-structure-reorg/plan.md`. No prerequisites. Pure refactoring — no behavior changes. |
+| S-06 | dashboard-logs-page | Dashboard: Dedicated page for detailed logs and traceability | yes | Proposed; depends on F-04 (done). |
+| S-10 | post-review-cleanup | Tech debt: 12-phase consolidated hardening plan | yes | Planned; prerequisites all done (S-09a). |
+| S-11 | opentelemetry-integration | Observability: OTLP export of traces, metrics, and logs to Grafana Cloud | no | Proposed; blocked on S-10. |
+| S-12 | in-memory-db-fallback | Persistence: 3-tier backend config (memory/sqlite/postgres) | yes | Proposed; S-13 (prereq) is done. |
+| S-20 | provider-retry-backoff | Reliability: same-provider retries + exponential backoff + cooldowns | yes | Proposed; S-17 (prereq) is done. Tier-1 gap #2. |
+| S-22 | agent-trace-spans | Observability: OpenInference span semantics for OTel export | no | Proposed; blocked on S-11. Tier-2 #8. |
+| S-23 | slice-cost-analytics | Observability: per-user/session/feature cost breakdowns | yes | Proposed; prerequisites S-18, S-02 both done. Tier-2 #9. |
+| S-24 | guardrails | Security: PII, prompt-injection, JSON-schema checks + deny semantics | yes | Proposed; prerequisite S-01e done. Tier-2 #10. |
+| S-25 | learned-prompt-router | Classifier (ENTERPRISE): embedding/BERT/calibrated router + benchmarks | no | Enterprise-tier; deferred. Prerequisite S-09 done. |
+| S-26 | alerting | Observability: cost/latency/error threshold + anomaly alerts | no | Proposed; blocked on S-11. Tier-3. |
+| S-27 | evals-datasets | Quality: LLM-as-judge evals + routing regression datasets | yes | Proposed; prerequisite S-02 done. Tier-3. |
+| S-28 | prompt-management | Config: versioned prompt templates deployable without code changes | yes | Proposed; prerequisite S-01e done. Tier-3. |
+| S-29 | circuit-breaker-health | Reliability: proactive health checks + circuit breaker | no | Proposed; blocked on S-20. Tier-3. |
+| S-30 | real-tokenizer | Compat: real tokenizer for count_tokens | yes | Proposed; no prerequisites. Tier-3. |
+| S-31 | multi-tenant-keys-budgets | Enterprise: per-user API keys + RBAC + budgets/quotas | no | Enterprise-tier; deferred. Prerequisite S-18 done. |
+| T-02 | protocol-file-naming | Tech debt: rename protocol/ files for clarity | yes | Preparing; frame complete. Prerequisite T-01 done. |
+| T-03 | Auth-CI-floor-cookbook | CI: wire fmt-check, slow_tests, auth grep guard into CI workflows | — | Implementing (plan complete). |
+| R-01 | competitive-landscape-2026 | Research: competitive landscape analysis 2026 | — | Preparing; research doc complete, pending strategic decisions. |
 
 ## Open Roadmap Questions
 
-1. **Intent classification categories and regex/keyword rules** — The PRD names four intents (COMPLEX_REASONING, FILE_READING, SYNTAX_FIX, CASUAL) but does not provide the actual regex patterns or keyword lists. Define the rules so S-01a planning can proceed. Owner: you. Block: S-01a.
-2. **Cheap fallback model for classification** — Which inexpensive model (OpenAI GPT-4o Mini, Anthropic Haiku, etc.) should be used for ambiguous prompts that don't match regex patterns? Owner: you. Block: S-01a.
-3. **Upstream model choices and cost/latency profiles** — Which models will the gateway route to (e.g., Claude 3.5 Sonnet for COMPLEX_REASONING, DeepSeek Flash for FILE_READING per shape-notes)? What are the cost and latency tradeoffs? This informs intent-to-model mapping in S-01b. Owner: you. Block: S-01b, S-04.
+All original blocking questions have been resolved through implementation:
+
+1. ~~**Intent classification categories and regex/keyword rules**~~ — Resolved: 4 categories (COMPLEX_REASONING, FILE_READING, SYNTAX_FIX, CASUAL) with 48 regex patterns defined in `config.toml`. S-01a done.
+2. ~~**Cheap fallback model for classification**~~ — Resolved: GPT-4o Mini via `LLMClassifier`. S-09 done.
+3. ~~**Upstream model choices and cost/latency profiles**~~ — Resolved: configured per-category in `routing.toml`. S-01b done.
+
+No open blocking questions remain.
 
 ## Parked
 
@@ -720,26 +858,36 @@ All roadmap items are active or completed; no currently parked items.
 
 ## Done
 
-- **F-01: (foundation) Access key/token validation middleware + basic HTTP auth for dashboard are in place; proxy routes require a valid key header; dashboard requires operator credentials.** — Archived 2026-06-01 → `context/archive/2026-05-26-auth-scaffold-access-keys/`. Lesson: —.
-- **F-03: (foundation) Askama HTML templates wired into Axum routing; /dashboard endpoint renders template with static placeholder content; basic HTTP basic-auth gate wraps the endpoint.** — Archived 2026-06-06 → `context/archive/2026-06-01-dashboard-template-scaffold/`. Lesson: —.
+Chronological order (most recently archived first):
 
-- **F-02: (foundation) Supabase PostgreSQL connection, schema for inference records (category, upstream model, duration, timestamp, prompt snippet), and async logging task are in place; proxy can write inference metadata non-blockingly after response streaming completes.** — Archived 2026-06-06 → `context/archive/2026-05-26-data-persistence-async-logging/`. Lesson: —.
-
-- **F-04: (foundation) Add structured logging statements to all critical code paths and support configurable logging level via RUST_LOG: authentication middleware, proxy classification, routing, streaming, and error handling. Uses `tracing` crate with appropriate levels (info, error) and includes request identifiers for correlation.** — Archived 2026-06-06 → `context/archive/2026-06-06-critical-logging/`. Lesson: —.
-- **S-02: user can view a table in the dashboard showing recent inference records, each row displaying: prompt snippet (minimized, no full body), assigned intent category, upstream model selected, and request duration.** — Archived 2026-06-07 → `context/archive/2026-06-01-inference-log-inspection/`. Lesson: —.
-
-- **S-07a: Generic configuration leaking from `RegexClassifier::from_env()` is lifted to `main()` so it's available to all classifier backends. After extraction, `RegexClassifier` receives only classifier-specific data (patterns, weights, thresholds, `CategoryConfig`).** — Archived 2026-06-07 → `context/archive/2026-06-07-extract-generic-classifier-config/`. Lesson: —.
-
-- **S-07b: A `CategoryConfig` struct is defined with `name`, `description`, `regex_threshold`, and `priority` fields. A static `CATEGORIES: &[CategoryConfig]` array serves as the single source of truth for all four intent categories. `RegexClassifier` consumes `CategoryConfig` at construction time (replacing scattered `CAT_*` constants, thresholds, and hardcoded priority ordering). The same `CategoryConfig` array feeds `LLMClassifier`'s prompt template generation (iterating `.description` fields) so both classifiers operate on the same category set without drift.** — Archived 2026-06-08 → `context/archive/2026-06-07-shared-category-config/`. Lesson: —.
-
-- **S-09: An `LLMClassifier` struct implements `IntentClassify`, sending the user prompt to a small/cheap classification model (e.g., `gpt-4o-mini`) and parsing the intent category from the response. Its config carries: model name, endpoint, `UPSTREAM_API_KEY` env var, and a classification prompt template that instructs the model to output one of the known categories. The `AppState` can hold either `RegexClassifier` or `LLMClassifier` behind the same `Arc<dyn IntentClassify>`.** — Archived 2026-06-08 → `context/archive/2026-06-07-llm-classifier/`. Lesson: —.
-
-- **S-15: The existing `POST /v1/chat/completions` endpoint can route to Anthropic-protocol upstreams with full body + streaming translation.** — Archived 2026-06-23 → `context/archive/2026-06-22-translate-openai-to-anthropic/`. Lesson: —.
-- **S-17: When an upstream provider returns a retryable error (5xx, connection timeout, 429 rate-limit), the proxy automatically retries the request on the next provider in a configured priority list.** — Archived 2026-06-26 → `context/archive/2026-06-24-provider-fallback-cascade/`. Lesson: —.
-- **S-13: Move All Config to File** — Zero hardcoded configuration in Rust — everything lives in `config.toml`. Environment variables reduced to strictly secrets. — Archived 2026-06-11 → `context/archive/2026-06-10-move-all-config-to-file/`. Lesson: —.
-
-- **S-14: Config Format Upgrade — Multi-Format + External Patterns** — Upgrade Frugalis's configuration system to support both YAML and TOML formats (via serde derives) and externalize regex patterns into pattern files. Users can choose configuration format (YAML favored by DevOps, TOML for Rust-native). Regex patterns live in separate `*.patterns` files with `weight | regex` format, eliminating escaping issues. Fully backward compatible with existing `config.toml`. Adds CLI tools: `--validate` checks config and patterns; `--migrate-config` converts old configs to YAML + pattern files. — Archived 2026-06-13 → `context/archive/2026-06-11-config-format-upgrade/`. Lesson: —.
-- **S-21: A new `POST /v1/responses` endpoint implements the OpenAI Responses API so modern Codex CLI (which now speaks only `responses`, not Chat Completions) can use Frugalis. Implemented as a translation layer on top of the existing `/v1/chat/completions` core (reasoning items ↔ `reasoning_content`, tool-call items ↔ `tool_calls`, SSE event translation).** — Archived 2026-07-01 → `context/archive/2026-06-30-codex-responses-api/`. Lesson: —.
+- **T-07: persistence-snippet-guardrails** — Make async logging failure observable + prove snippet extraction holds across all 3 backends with PII guardrails. — Archived 2026-07-01 → `context/archive/2026-07-01-persistence-snippet-guardrails/`.
+- **T-06: classifier-chain-routing-integrity** — Classifier chain routing integrity tests. — Archived 2026-07-01 → `context/archive/2026-07-01-classifier-chain-routing-integrity/`.
+- **S-21: codex-responses-api** — `/v1/responses` endpoint (OpenAI Responses API) shim for Codex CLI. — Archived 2026-07-01 → `context/archive/2026-06-30-codex-responses-api/`.
+- **T-05: testing-proxy-translation-contracts** — Proxy translation contract tests (all directions + streaming edge cases). — Archived 2026-07-01 → `context/archive/2026-06-30-testing-proxy-translation-contracts/`.
+- **T-01a: code-structure-reorg-ext** — Extend reorg with routing_examples, test co-location, dashboard/routing/app subdirectories. — Archived 2026-07-01 → `context/archive/2026-06-29-code-structure-reorg-ext/`.
+- **T-04: replace-sqlx** — Migrated from sqlx to diesel for compile-time safety + reduced duplication. — Archived 2026-07-01 → `context/archive/2026-06-28-replace-sqlx/`.
+- **S-19: add-response-cache** — Semantic + exact-match response caching. — Archived 2026-06-28 → `context/archive/2026-06-28-add-response-cache/`.
+- **T-01: code-structure-reorg** — Flat `src/` reorganized into domain directories; `main.rs` shrinks from 8,460 to ~250 lines. — Archived 2026-06-28 → `context/archive/2026-06-28-code-structure-reorg/`.
+- **S-18: claude-code-compat** — Forward anthropic-beta/anthropic-version/x-claude-code-* headers + translate cache_control + Anthropic `/v1/models` shape. — Archived 2026-06-27 → `context/archive/2026-06-27-claude-code-compat/`.
+- **S-16: translate-anthropic-to-openai** — Rename to Frugalis + full `/v1/messages` endpoint (Anthropic→OpenAI translation). — Archived 2026-06-27 → `context/archive/2026-06-27-rename-cerebrum-to-frugalis/` + `context/archive/2026-06-22-translate-openai-to-anthropic/`.
+- **T-10: testing-critical-path-regression-guards** — Critical-path regression guards (chain escalation + completion_handler invariants). — Archived 2026-06-27 → `context/archive/2026-06-13-testing-critical-path-regression-guards/`.
+- **T-09: cicd-dev-tooling** — Makefile/justfile, Dockerfile, docker-compose stack, test plan refresh. — Archived 2026-06-26 → `context/archive/2026-06-15-cicd-dev-tooling/`.
+- **S-17: provider-fallback-cascade** — Failover to next provider on 5xx/timeout/429. — Archived 2026-06-26 → `context/archive/2026-06-24-provider-fallback-cascade/`.
+- **S-16: translate-anthropic-to-openai** — New `/v1/messages` endpoint accepting Anthropic Messages protocol with full translation. — Archived 2026-06-23 → `context/archive/2026-06-22-translate-openai-to-anthropic/`.
+- **T-11: anthropic-passthrough** — `/v1/messages` pass-through endpoint (foundation for S-16). — Archived 2026-06-23 → `context/archive/2026-06-22-anthropic-passthrough/`.
+- **S-15: translate-openai-to-anthropic** — Route `/v1/chat/completions` to Anthropic upstreams with full body + streaming translation. — Archived 2026-06-23 → `context/archive/2026-06-22-translate-openai-to-anthropic/`.
+- **S-14: config-format-upgrade** — YAML + TOML multi-format support, external pattern files, `--validate`/`--migrate-config` CLI tools. — Archived 2026-06-13 → `context/archive/2026-06-11-config-format-upgrade/`.
+- **T-08: fewshot-classifier** — Few-shot intent classifier backend for ClassifierChain. — Archived 2026-06-13 → `context/archive/2026-06-09-fewshot-classifier/`.
+- **S-13: move-all-config-to-file** — Zero hardcoded configuration in Rust — everything in `config.toml`. — Archived 2026-06-11 → `context/archive/2026-06-10-move-all-config-to-file/`.
+- **S-09a: classifier-config-boundary** — Formalized generic/specific config boundary with per-backend enable/disable flags. — Archived 2026-06-09 → `context/archive/2026-06-07-classifier-config-boundary/`.
+- **S-09: llm-classifier** — `LLMClassifier` implementing `IntentClassify` for cheap-model fallback classification. — Archived 2026-06-08 → `context/archive/2026-06-07-llm-classifier/`.
+- **S-07b: shared-category-config** — `CategoryConfig` single source of truth for all intent categories. — Archived 2026-06-08 → `context/archive/2026-06-07-shared-category-config/`.
+- **S-07a: extract-generic-classifier-config** — Lifted generic config from `RegexClassifier` to `main()`. — Archived 2026-06-07 → `context/archive/2026-06-07-extract-generic-classifier-config/`.
+- **S-02: inference-log-inspection** — Dashboard table of recent inference records. — Archived 2026-06-07 → `context/archive/2026-06-01-inference-log-inspection/`.
+- **F-04: critical-logging** — Structured logging on all critical paths. — Archived 2026-06-06 → `context/archive/2026-06-06-critical-logging/`.
+- **F-03: dashboard-template-scaffold** — Askama templates + `/dashboard` route. — Archived 2026-06-06 → `context/archive/2026-06-01-dashboard-template-scaffold/`.
+- **F-02: data-persistence-async-logging** — Supabase PostgreSQL + async inference logging. — Archived 2026-06-06 → `context/archive/2026-05-26-data-persistence-async-logging/`.
+- **F-01: auth-scaffold-access-keys** — Access key/token validation + operator dashboard auth gate. — Archived 2026-06-01 → `context/archive/2026-05-26-auth-scaffold-access-keys/`.
 
 ---
 
@@ -761,22 +909,17 @@ The 3-week MVP budget under a 6-week hard deadline makes calendar time the #1 bl
 ---
 
 ════════════════════════════════════════════════════════════
-**ROADMAP GENERATED**
+**ROADMAP STATUS** (updated 2026-07-31)
 ════════════════════════════════════════════════════════════
 
 **Project:** frugalis
 **Path:** context/foundation/roadmap.md
-**Main goal:** speed (sequencing bias)
-**#1 blocker:** time (6-week hard deadline)
-**Baseline present:** Backend/API, Deploy/infra (partial)
-**Foundations:** 4
-**Slices:** 19 (S-01a through S-01e, S-02, S-03, S-04, S-05, S-06, S-07, S-07a, S-07b, S-08, S-09, S-09a, S-10, S-11, S-12, S-13, S-14)
-**Status breakdown:** ready: 3 | proposed: 9 (F-04, S-06, S-07a, S-07b, S-09, S-09a, S-11, S-12, S-14) | planned: 1 (S-10) | preparing: 1 (S-13) | implemented: 9 | descoped: 1 (S-08) | blocked: 0
-**PRD coverage:** 6 must-have FRs covered | 1 nice-to-have FR (implemented)
-**Open Roadmap Q:** 3 (intent classification rules, cheap fallback model, upstream model choices)
-**Parked items:** 0
-
-**North star:** S-01e — End-to-end intent-aware proxy routing
+**North star:** S-01e — End-to-end intent-aware proxy routing ✓ (achieved)
+**Foundations:** 4/4 done
+**Feature slices:** 31 (S-01a through S-31) + 11 tech debt (T-01 through T-11) + 1 research (R-01)
+**Status breakdown:** done: 37 | implementing: 1 (T-03) | preparing: 2 (T-02, R-01) | planned: 1 (S-10) | proposed: 10 (S-06, S-11, S-12, S-20, S-22–S-24, S-26–S-28, S-29–S-30) | descoped: 1 (S-08) | enterprise/deferred: 2 (S-25, S-31)
+**Open Roadmap Q:** 0 (all resolved)
+**Active changes:** `protocol-file-naming` (preparing), `Auth-CI-floor-cookbook` (implementing), `competitive-landscape-2026` (research, preparing)
 
 ════════════════════════════════════════════════════════════
 
@@ -784,7 +927,11 @@ The 3-week MVP budget under a 6-week hard deadline makes calendar time the #1 bl
 
 ## Your next move
 
-**► `/10x-implement claude-code-compat phase 1` on S-18: Claude Code compatibility**
+**► Finish T-03 (`Auth-CI-floor-cookbook`) — currently implementing**
 
-**Why this one:** Plan complete (`context/changes/claude-code-compat/plan.md`); the highest-priority competitive gap (Tier-1 #3/#4). Prerequisites S-01e and S-15 are done. Closes the deal-breakers that currently make Frugalis an incomplete Claude Code drop-in (dropped `anthropic-beta` headers, stripped `cache_control` caching, OpenAI-shape `/v1/models`), unlocking the full value of the existing 2,763-line bidirectional translator. Tier-1 siblings S-19 (caching), S-20 (retry/backoff), S-21 (Codex Responses API) follow per the user-set priority order.
-*** End Updated File ***- **S-09a: With both `RegexClassifier` and `LLMClassifier` backends operational, the config boundary between generic and classifier-specific settings is formalized. Per-backend enable/disable and ordering flags control chain construction at startup.** — Archived 2026-06-09 → `context/archive/2026-06-07-classifier-config-boundary/`. Lesson: —.
+Then pick from the unblocked backlog:
+1. **T-02: `protocol-file-naming`** — frame done, needs `/10x-plan`
+2. **S-10: `post-review-cleanup`** — planned, all prerequisites done
+3. **S-20: `provider-retry-backoff`** — highest remaining competitive gap (Tier-1 #2), prerequisites done
+4. **S-12: `in-memory-db-fallback`** — prerequisite S-13 done; enables zero-dep dev
+5. **S-23: `slice-cost-analytics`** — leverages S-18 attribution headers already in production
