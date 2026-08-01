@@ -30,5 +30,4 @@ jobs:
           mistral_api_key: ${{ secrets.MISTRAL_API_KEY }}
           custom_swe_score: ${{ secrets.CUSTOM_SWE_SCORE }}
           custom_api_url: ${{ secrets.CUSTOM_API_URL }}
-          custom_model: ${{ secrets.CUSTOM_MODEL }}
           custom_api_key: ${{ secrets.CUSTOM_API_KEY }}
