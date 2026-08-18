@@ -26,6 +26,7 @@ jobs:
           custom_models_base_url: ${{ secrets.CUSTOM_MODELS_BASE_URL }}
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           kilocode_api_key: ${{ secrets.KILO_API_KEY }}
+          nousresearch_api_key: ${{ secrets.NOUSRESEARCH_API_KEY }}
           nim_api_key: ${{ secrets.NIM_API_KEY }}
           mistral_api_key: ${{ secrets.MISTRAL_API_KEY }}
           custom_swe_score: ${{ secrets.CUSTOM_SWE_SCORE }}
